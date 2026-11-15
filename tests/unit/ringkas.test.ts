@@ -141,3 +141,20 @@ describe("hashPendek", () => {
     expect(hashPendek("103.1.2|bruteforce|blocklist.de").length).toBeLessThanOrEqual(7);
   });
 });
+
+describe("ekspor CSV", () => {
+  it("tiga tabel, tanpa IP, kutip aman", async () => {
+    const { snapshotKeCsv } = await import("@/lib/pipa/csv");
+    const s = ringkas(
+      bahan({
+        blocklist: [{ nama: "ssh", kategori: "bruteforce", label: "SSH", ips: ["103.1.2.3"] }],
+        radar: { asalL7: [{ kode: "US", persen: 13.14 }], asalL3: [{ kode: "HU", persen: 34.5 }], tren: [], periode: { mulai: "2026-11-08T01:00:00Z", akhir: "2026-11-15T01:00:00Z" } },
+      }),
+    );
+    const csv = snapshotKeCsv(s);
+    expect(Object.keys(csv)).toEqual(["asal_serangan.csv", "host_indonesia.csv", "tren_harian.csv"]);
+    expect(csv["asal_serangan.csv"]).toContain("web_l7,US,Amerika Serikat,13.14,2026-11-08,2026-11-15");
+    expect(csv["host_indonesia.csv"].split("\n")[1]).toMatch(/^Bekasi,-6.235,106.99,bruteforce,blocklist.de,1,7713,2026-11-15$/);
+    expect(Object.values(csv).join("")).not.toMatch(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+  });
+});

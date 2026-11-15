@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "data": "tsx scripts/ambil_data.ts"
+    "data": "tsx scripts/ambil_data.ts --keluar public/data/ancaman.json --lama public/data/ancaman.json --csv data"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

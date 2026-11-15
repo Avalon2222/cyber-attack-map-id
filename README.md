@@ -96,6 +96,9 @@ browser ─▶ ambil dua-duanya, pakai yang paling baru ─▶ MapLibre globe + 
 - **Busur.** `src/lib/serangan.ts` milih negara asal secara acak berbobot porsi Radar, bikin lintasan lingkaran besar,
   lalu `src/lib/kanvas/animasi.ts` menggambarnya di kanvas 2D di atas globe pakai matriks proyeksi MapLibre (lengkap
   dengan uji oklusi di balik bumi). Kepala busur menyala dengan ekor, riak saat mendarat.
+- **CSV.** `npm run data` juga menulis `data/asal_serangan.csv`, `data/host_indonesia.csv`, dan `data/tren_harian.csv`
+  (agregat, tanpa IP) supaya gampang dipakai proyek lain, misalnya chatbot
+  [talk-to-the-data](https://github.com/Avalon2222/talk-to-the-data).
 - **Keamanan.** Content-Security-Policy ketat (`src/lib/keamanan.ts`), gak ada API key di browser: semua kunci cuma
   ada di GitHub Actions secrets.
 

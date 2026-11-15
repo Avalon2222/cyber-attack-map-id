@@ -1,7 +1,7 @@
 /**
  * Ambil semua feed threat intel, gabungkan, tulis snapshot JSON.
  *
- *   npx tsx scripts/ambil_data.ts --keluar public/data/ancaman.json
+ *   npx tsx scripts/ambil_data.ts --keluar public/data/ancaman.json [--csv data]
  *
  * Kunci API (opsional, dibaca dari env; tanpa kunci sumbernya dilewati dan data lama dipakai):
  *   CLOUDFLARE_API_TOKEN  Cloudflare Radar (asal serangan L7/L3 yang menyasar Indonesia, tren harian)
@@ -33,6 +33,7 @@ import {
   periodeRadar,
 } from "../src/lib/pipa/parser";
 import { ringkas, type Bahan, type DaftarBlocklist, type DataRadar } from "../src/lib/pipa/ringkas";
+import { snapshotKeCsv } from "../src/lib/pipa/csv";
 
 const UA = "cyber-attack-map-id/1.0 (+https://github.com/Avalon2222/cyber-attack-map-id)";
 const URL_LAMA = "https://raw.githubusercontent.com/Avalon2222/cyber-attack-map-id/data/ancaman.json";
@@ -312,6 +313,12 @@ async function utama() {
   const snap = ringkas(bahan);
   mkdirSync(dirname(keluar), { recursive: true });
   writeFileSync(keluar, JSON.stringify(snap));
+  // --csv data: ekspor agregat ke CSV (tanpa IP) untuk dipakai proyek lain
+  const dirCsv = arg("csv");
+  if (dirCsv) {
+    mkdirSync(dirCsv, { recursive: true });
+    for (const [nama, isi] of Object.entries(snapshotKeCsv(snap))) writeFileSync(`${dirCsv}/${nama}`, isi);
+  }
   console.log(`tulis ${keluar}: ${snap.host.length} host, ${snap.masuk.aliran.length} aliran, ${snap.kampanye.length} kampanye, ${snap.ransomware.length} ransomware`);
 }
 
