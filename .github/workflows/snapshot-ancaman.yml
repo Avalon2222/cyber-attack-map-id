@@ -1,0 +1,50 @@
+name: Snapshot ancaman
+
+# Ambil semua feed threat intel, gabungkan, lalu simpan ancaman.json ke cabang `data`.
+# Browser membaca berkas itu lewat raw.githubusercontent.com, jadi data segar tanpa deploy ulang.
+# Jadwal GitHub Actions sering telat, jadi cron-nya agak rapat (tiap 2 jam); kalau telat ya gak apa-apa.
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshot-ancaman
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # DB-IP lite (geolokasi IP) ganti tiap bulan; disimpan di cache supaya gak unduh 90 MB tiap run
+      - name: Kunci cache DB-IP per bulan
+        id: bulan
+        run: echo "bulan=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: .cache
+          key: dbip-${{ steps.bulan.outputs.bulan }}
+
+      - name: Ambil feed dan bangun snapshot
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
+          OTX_API_KEY: ${{ secrets.OTX_API_KEY }}
+        run: |
+          mkdir -p keluar
+          curl -sf "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/ancaman.json" -o keluar/lama.json || true
+          npx tsx scripts/ambil_data.ts --keluar keluar/ancaman.json --lama keluar/lama.json
+
+      - name: Simpan ke cabang data
+        run: bash scripts/simpan_cabang_data.sh keluar/ancaman.json
