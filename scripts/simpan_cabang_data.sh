@@ -20,6 +20,12 @@ else
   (cd cabang-data && git checkout -q --orphan data && git rm -rfq . && echo "Cabang data: snapshot threat intel (ancaman.json). Ditulis otomatis oleh GitHub Actions tiap beberapa jam." > README.md)
 fi
 
+# cabang data bukan app: Vercel jangan ikut nge-build tiap snapshot
+printf '{
+  "git": { "deploymentEnabled": false }
+}
+' > cabang-data/vercel.json
+
 for berkas in "$@"; do
   cp "$berkas" "cabang-data/$(basename "$berkas")"
 done
